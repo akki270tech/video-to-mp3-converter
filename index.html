@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Free Video to MP3 Converter</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:50px;">
+  <h1>🎵 Free Video to MP3 Converter</h1>
+  <p>Select a video file and convert it to MP3 (works in your browser).</p>
+
+  <input type="file" id="uploader" accept="video/*" />
+  <button id="convertBtn">Convert to MP3</button>
+  <br/><br/>
+  <a id="downloadLink" style="display:none;">Download MP3</a>
+
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+  <script>
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({ log: true });
+    const uploader = document.getElementById('uploader');
+    const convertBtn = document.getElementById('convertBtn');
+    const downloadLink = document.getElementById('downloadLink');
+
+    convertBtn.addEventListener('click', async () => {
+      if (!uploader.files.length) {
+        alert("Please select a video file first!");
+        return;
+      }
+      await ffmpeg.load();
+      const file = uploader.files[0];
+      ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+      await ffmpeg.run('-i', file.name, 'output.mp3');
+      const data = ffmpeg.FS('readFile', 'output.mp3');
+
+      const url = URL.createObjectURL(new Blob([data.buffer], { type: 'audio/mp3' }));
+      downloadLink.href = url;
+      downloadLink.download = "converted.mp3";
+      downloadLink.style.display = "inline-block";
+      downloadLink.innerText = "⬇️ Download MP3";
+    });
+  </script>
+</body>
+</html>
